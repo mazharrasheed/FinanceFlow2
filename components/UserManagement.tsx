@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, UserRole, AppTheme } from '../types';
+import { User, UserRole, AppTheme, UserPermissions } from '../types';
 import { ICONS } from '../constants';
 
 interface Props {
@@ -10,22 +10,48 @@ interface Props {
   theme: AppTheme;
 }
 
-const UserManagement: React.FC<Props> = ({ users, onAddUser, onDeleteUser, theme }) => {
+const PRESETS: Record<string, UserPermissions> = {
+  'Administrator': {
+    viewProjects: true, addProjects: true, editProjects: true, deleteProjects: true,
+    viewTransactions: true, addTransactions: true, editTransactions: true, deleteTransactions: true,
+    manageUsers: true
+  },
+  'Manager': {
+    viewProjects: true, addProjects: true, editProjects: true, deleteProjects: false,
+    viewTransactions: true, addTransactions: true, editTransactions: true, deleteTransactions: false,
+    manageUsers: false
+  },
+  'Staff': {
+    viewProjects: true, addProjects: false, editProjects: false, deleteProjects: false,
+    viewTransactions: true, addTransactions: true, editTransactions: false, deleteTransactions: false,
+    manageUsers: false
+  },
+  'Auditor': {
+    viewProjects: true, addProjects: false, editProjects: false, deleteProjects: false,
+    viewTransactions: true, addTransactions: false, editTransactions: false, deleteTransactions: false,
+    manageUsers: false
+  }
+};
+
+const UserManagement: React.FC<Props> = ({ users, onDeleteUser, onAddUser, theme }) => {
   const [showModal, setShowModal] = useState(false);
   const [newUsername, setNewUsername] = useState('');
-  const [newRole, setNewRole] = useState<UserRole>(UserRole.VIEWER);
+  const [selectedPreset, setSelectedPreset] = useState('Staff');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUsername.trim()) return;
 
+    const perms = PRESETS[selectedPreset];
     onAddUser({
       id: Math.random().toString(36).substr(2, 9),
       username: newUsername,
-      role: newRole,
+      role: perms.manageUsers ? UserRole.ADMIN : UserRole.STAFF,
+      permissions: perms,
       createdAt: new Date().toISOString()
     });
     setNewUsername('');
+    setSelectedPreset('Staff');
     setShowModal(false);
   };
 
@@ -33,16 +59,12 @@ const UserManagement: React.FC<Props> = ({ users, onAddUser, onDeleteUser, theme
                    theme === 'royal' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200' :
                    theme === 'gold' ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-200' : 'bg-rose-600 hover:bg-rose-700 shadow-rose-200';
 
-  const ringColor = theme === 'emerald' ? 'focus:ring-emerald-500' :
-                    theme === 'royal' ? 'focus:ring-blue-500' :
-                    theme === 'gold' ? 'focus:ring-amber-500' : 'focus:ring-rose-500';
-
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <header className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Staff & Access</h2>
-          <p className="text-slate-500">Manage user permissions and platform access.</p>
+          <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Staff & Access Control</h2>
+          <p className="text-slate-500">Manage granular permissions for platform access levels.</p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
@@ -58,8 +80,8 @@ const UserManagement: React.FC<Props> = ({ users, onAddUser, onDeleteUser, theme
           <thead className="bg-slate-50/50 text-slate-400 text-[10px] uppercase font-bold tracking-widest border-b border-slate-100">
             <tr>
               <th className="px-6 py-4">User</th>
-              <th className="px-6 py-4">Role</th>
-              <th className="px-6 py-4">Joined Date</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Access Level</th>
               <th className="px-6 py-4 text-center">Actions</th>
             </tr>
           </thead>
@@ -68,16 +90,25 @@ const UserManagement: React.FC<Props> = ({ users, onAddUser, onDeleteUser, theme
               <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 uppercase">{u.username[0]}</div>
+                    <div className={`w-8 h-8 rounded-full ${btnColor} flex items-center justify-center font-bold text-white uppercase`}>{u.username[0]}</div>
                     <span className="font-semibold text-slate-800">{u.username}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${u.role === UserRole.ADMIN ? 'bg-purple-50 text-purple-700' : 'bg-slate-50 text-slate-700'}`}>
-                    {u.role}
+                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${u.permissions?.manageUsers ? 'bg-purple-50 text-purple-700' : 'bg-slate-50 text-slate-700'}`}>
+                    {u.permissions?.manageUsers ? 'Superuser' : 'Standard User'}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-500">{new Date(u.createdAt).toLocaleDateString()}</td>
+                <td className="px-6 py-4">
+                   <div className="flex flex-wrap gap-1">
+                      {Object.entries(u.permissions || {}).filter(([k,v]) => v === true && k !== 'manageUsers').slice(0, 3).map(([k]) => (
+                        <span key={k} className="text-[9px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded uppercase">
+                          {k.replace('view', '').replace('Projects', 'Proj').replace('Transactions', 'Txn')}
+                        </span>
+                      ))}
+                      {Object.values(u.permissions || {}).filter(v => v === true).length > 3 && <span className="text-[9px] font-bold text-slate-400">...</span>}
+                   </div>
+                </td>
                 <td className="px-6 py-4 text-center">
                   <button 
                     onClick={() => onDeleteUser(u.id)}
@@ -94,27 +125,31 @@ const UserManagement: React.FC<Props> = ({ users, onAddUser, onDeleteUser, theme
 
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-slate-800">New Account</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-in zoom-in duration-200 overflow-hidden">
+            <div className={`p-6 border-b border-slate-100 ${btnColor} text-white flex justify-between items-center`}>
+              <h3 className="text-xl font-bold">New Staff Account</h3>
+              <button onClick={() => setShowModal(false)} className="bg-white/20 p-1 rounded-lg">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                <input required type="text" value={newUsername} onChange={e => setNewUsername(e.target.value)} className={`w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 ${ringColor} outline-none`} placeholder="j.doe" />
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Account Username</label>
+                <input required type="text" value={newUsername} onChange={e => setNewUsername(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-900 outline-none text-sm font-medium" placeholder="e.g. j.doe" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Role & Permissions</label>
-                <select value={newRole} onChange={e => setNewRole(e.target.value as UserRole)} className={`w-full border border-slate-200 rounded-xl px-4 py-3 bg-white focus:ring-2 ${ringColor} outline-none`}>
-                  <option value={UserRole.VIEWER}>Viewer (Read Only)</option>
-                  <option value={UserRole.ADMIN}>Administrator (Full Access)</option>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Access Level Preset</label>
+                <select 
+                  value={selectedPreset} 
+                  onChange={e => setSelectedPreset(e.target.value)}
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-slate-900 outline-none text-sm font-bold bg-white"
+                >
+                  {Object.keys(PRESETS).map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
+                <p className="mt-2 text-[10px] text-slate-400 italic">Presets automatically configure granular access flags.</p>
               </div>
-              <button type="submit" className={`w-full ${btnColor} text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 mt-4`}>
-                Grant Access
+              <button type="submit" className={`w-full ${btnColor} text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95`}>
+                Deploy Account
               </button>
             </form>
           </div>

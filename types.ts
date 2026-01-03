@@ -45,14 +45,29 @@ export interface HotelProject {
 
 export enum UserRole {
   ADMIN = 'ADMIN',
+  STAFF = 'STAFF',
   VIEWER = 'VIEWER'
+}
+
+export interface UserPermissions {
+  // Flat structure is more stable for storage/retrieval
+  viewProjects: boolean;
+  addProjects: boolean;
+  editProjects: boolean;
+  deleteProjects: boolean;
+  viewTransactions: boolean;
+  addTransactions: boolean;
+  editTransactions: boolean;
+  deleteTransactions: boolean;
+  manageUsers: boolean;
 }
 
 export interface User {
   id: string;
   username: string;
   password?: string;
-  role: UserRole;
+  role: UserRole; 
+  permissions: UserPermissions;
   token?: string;
   createdAt: string;
   email?: string;
@@ -65,30 +80,4 @@ export interface FinanceSummary {
   totalIncome: number;
   totalExpense: number;
   balance: number;
-}
-
-// Add AppContextType for consumption via useOutletContext
-export interface AppContextType {
-  projects: HotelProject[];
-  transactions: Transaction[];
-  users: User[];
-  theme: AppTheme;
-  setTheme: (t: AppTheme) => void;
-  user: User | null;
-  projectActions: {
-    add: (p: HotelProject) => void;
-    update: (p: HotelProject) => void;
-    delete: (id: string) => void;
-  };
-  transactionActions: {
-    add: (t: Transaction) => void;
-    update: (t: Transaction) => void;
-    delete: (id: string) => void;
-  };
-  userActions: {
-    add: (u: User) => void;
-    delete: (id: string) => void;
-    updateProfile: (updated: User) => void;
-  };
-  backupToCSV: () => void;
 }

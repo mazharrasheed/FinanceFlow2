@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HotelProject, Transaction, UserRole, TransactionType, AppTheme } from '../types';
+import { HotelProject, Transaction, TransactionType, AppTheme, UserPermissions } from '../types';
 import { ICONS } from '../constants';
 
 interface Props {
@@ -10,7 +9,7 @@ interface Props {
   onAddProject: (project: HotelProject) => void;
   onUpdateProject: (project: HotelProject) => void;
   onDeleteProject: (id: string) => void;
-  userRole?: UserRole;
+  userPermissions: UserPermissions;
   theme: AppTheme;
 }
 
@@ -18,7 +17,7 @@ const formatCurrency = (amount: number) => {
   return `Rs. ${amount.toLocaleString('en-PK')}`;
 };
 
-const ProjectList: React.FC<Props> = ({ projects, transactions, onAddProject, onUpdateProject, onDeleteProject, userRole, theme }) => {
+const ProjectList: React.FC<Props> = ({ projects, transactions, onAddProject, onUpdateProject, onDeleteProject, userPermissions, theme }) => {
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [newProject, setNewProject] = useState<Partial<HotelProject>>({
@@ -68,7 +67,6 @@ const ProjectList: React.FC<Props> = ({ projects, transactions, onAddProject, on
     setNewProject({ name: '', location: '', startDate: new Date().toISOString().split('T')[0], status: 'Operational', budget: 0 });
   };
 
-  const isAdmin = userRole === UserRole.ADMIN;
   const btnColor = theme === 'emerald' ? 'bg-emerald-600 hover:bg-emerald-700' :
                    theme === 'royal' ? 'bg-blue-600 hover:bg-blue-700' :
                    theme === 'gold' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-rose-600 hover:bg-rose-700';
@@ -84,7 +82,8 @@ const ProjectList: React.FC<Props> = ({ projects, transactions, onAddProject, on
           <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Portfolio Directory</h2>
           <p className="text-slate-500">Managing active hotel developments across Pakistan.</p>
         </div>
-        {isAdmin && (
+        {/* Fix: Access flat property addProjects instead of nested projects.add */}
+        {userPermissions.addProjects && (
           <button 
             onClick={() => setShowModal(true)}
             className={`${btnColor} text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-bold shadow-lg transition-all active:scale-95`}
@@ -112,22 +111,26 @@ const ProjectList: React.FC<Props> = ({ projects, transactions, onAddProject, on
                 }`}>
                   {project.status}
                 </span>
-                {isAdmin && (
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0">
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0">
+                  {/* Fix: Access flat property editProjects instead of nested projects.edit */}
+                  {userPermissions.editProjects && (
                     <button 
                       onClick={(e) => handleEdit(project, e)}
                       className="p-2 bg-slate-50 text-slate-500 hover:bg-slate-100 rounded-xl"
                     >
                       <ICONS.Edit />
                     </button>
+                  )}
+                  {/* Fix: Access flat property deleteProjects instead of nested projects.delete */}
+                  {userPermissions.deleteProjects && (
                     <button 
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDeleteProject(project.id); }}
                       className="p-2 bg-slate-50 text-slate-500 hover:bg-rose-50 hover:text-rose-600 rounded-xl"
                     >
                       <ICONS.Delete />
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
               <h3 className={`text-xl font-bold text-slate-800 mb-1 transition-colors group-hover:${textTheme} relative z-10`}>{project.name}</h3>
               <p className="text-slate-500 text-sm mb-8 flex items-center gap-1.5 relative z-10">

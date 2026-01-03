@@ -112,6 +112,27 @@ const UserProfile: React.FC<Props> = ({ user, onUpdate, theme, setTheme }) => {
               <button type="submit" className={`mt-2 px-8 py-3 rounded-2xl text-white font-bold text-sm ${btnColor}`}>Save Changes</button>
             </form>
           </section>
+
+          <section className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">Security</h3>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Current Password</label>
+                <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none text-sm" placeholder="••••••••" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">New Password</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none text-sm" placeholder="••••••••" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Confirm New Password</label>
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none text-sm" placeholder="••••••••" />
+                </div>
+              </div>
+              <button type="submit" className={`mt-2 px-8 py-3 rounded-2xl text-white font-bold text-sm ${btnColor}`}>Update Password</button>
+            </form>
+          </section>
         </div>
       </div>
     </div>

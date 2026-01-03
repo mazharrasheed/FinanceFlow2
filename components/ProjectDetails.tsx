@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { HotelProject, Transaction, TransactionType, IncomeCategory, ExpenseCategory, UserRole, AppTheme } from '../types';
+import { HotelProject, Transaction, TransactionType, IncomeCategory, ExpenseCategory, AppTheme, UserPermissions } from '../types';
 import { ICONS } from '../constants';
 
 interface Props {
@@ -10,7 +9,7 @@ interface Props {
   onAddTransaction: (transaction: Transaction) => void;
   onUpdateTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
-  userRole?: UserRole;
+  userPermissions: UserPermissions;
   theme: AppTheme;
 }
 
@@ -18,7 +17,7 @@ const formatCurrency = (amount: number) => {
   return `Rs. ${amount.toLocaleString('en-PK')}`;
 };
 
-const ProjectDetails: React.FC<Props> = ({ projects, transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, userRole, theme }) => {
+const ProjectDetails: React.FC<Props> = ({ projects, transactions, onAddTransaction, onUpdateTransaction, onDeleteTransaction, userPermissions, theme }) => {
   const { id } = useParams<{ id: string }>();
   const project = projects.find(p => p.id === id);
   const projectTransactions = transactions
@@ -66,7 +65,6 @@ const ProjectDetails: React.FC<Props> = ({ projects, transactions, onAddTransact
     setFormData({ date: new Date().toISOString().split('T')[0], type: TransactionType.INCOME, category: IncomeCategory.ROOM_REVENUE, amount: 0, description: '' });
   };
 
-  const isAdmin = userRole === UserRole.ADMIN;
   const btnColor = theme === 'emerald' ? 'bg-emerald-600 hover:bg-emerald-700' :
                    theme === 'royal' ? 'bg-blue-600 hover:bg-blue-700' :
                    theme === 'gold' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-rose-600 hover:bg-rose-700';
@@ -111,9 +109,12 @@ const ProjectDetails: React.FC<Props> = ({ projects, transactions, onAddTransact
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
           <h3 className="text-lg font-bold text-slate-800">Operational Logs</h3>
-          <button onClick={() => setIsModalOpen(true)} className={`${btnColor} text-white px-5 py-2 rounded-xl flex items-center gap-2 text-sm font-bold shadow-lg transition-all active:scale-95`}>
-            <ICONS.Add /> Log Movement
-          </button>
+          {/* Fix: Access flat property addTransactions instead of nested transactions.add */}
+          {userPermissions.addTransactions && (
+            <button onClick={() => setIsModalOpen(true)} className={`${btnColor} text-white px-5 py-2 rounded-xl flex items-center gap-2 text-sm font-bold shadow-lg transition-all active:scale-95`}>
+              <ICONS.Add /> Log Movement
+            </button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -123,7 +124,7 @@ const ProjectDetails: React.FC<Props> = ({ projects, transactions, onAddTransact
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Description</th>
                 <th className="px-6 py-4 text-right">Amount</th>
-                {isAdmin && <th className="px-6 py-4 text-center">Actions</th>}
+                <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -139,14 +140,18 @@ const ProjectDetails: React.FC<Props> = ({ projects, transactions, onAddTransact
                   <td className={`px-6 py-4 text-sm font-bold text-right ${t.type === TransactionType.INCOME ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {t.type === TransactionType.INCOME ? '+' : '-'}{formatCurrency(t.amount)}
                   </td>
-                  {isAdmin && (
-                    <td className="px-6 py-4">
-                      <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <td className="px-6 py-4">
+                    <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Fix: Access flat property editTransactions instead of nested transactions.edit */}
+                      {userPermissions.editTransactions && (
                         <button onClick={() => handleEdit(t)} className="p-1.5 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-lg transition-colors"><ICONS.Edit /></button>
+                      )}
+                      {/* Fix: Access flat property deleteTransactions instead of nested transactions.delete */}
+                      {userPermissions.deleteTransactions && (
                         <button onClick={() => onDeleteTransaction(t.id)} className="p-1.5 bg-slate-100 text-slate-500 hover:bg-rose-100 hover:text-rose-600 rounded-lg transition-colors"><ICONS.Delete /></button>
-                      </div>
-                    </td>
-                  )}
+                      )}
+                    </div>
+                  </td>
                 </tr>
               )) : (
                 <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">No movement recorded.</td></tr>
