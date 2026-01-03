@@ -6,7 +6,7 @@ interface Props {
   user: User;
   onUpdate: (user: User) => void;
   theme: AppTheme;
-  setTheme: (t: AppTheme) => void;
+  setTheme: (theme: AppTheme) => void;
 }
 
 const UserProfile: React.FC<Props> = ({ user, onUpdate, theme, setTheme }) => {
@@ -36,7 +36,6 @@ const UserProfile: React.FC<Props> = ({ user, onUpdate, theme, setTheme }) => {
       setMsg({ type: 'error', text: 'Passwords do not match.' });
       return;
     }
-    // In a real app, we'd verify currentPassword here.
     onUpdate({ ...user, password: newPassword });
     setMsg({ type: 'success', text: 'Password changed successfully!' });
     setCurrentPassword('');
@@ -67,7 +66,6 @@ const UserProfile: React.FC<Props> = ({ user, onUpdate, theme, setTheme }) => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Profile Card */}
         <div className="md:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 text-center relative overflow-hidden">
             <div className={`absolute top-0 left-0 w-full h-24 ${btnColor} opacity-10`}></div>
@@ -76,10 +74,6 @@ const UserProfile: React.FC<Props> = ({ user, onUpdate, theme, setTheme }) => {
             </div>
             <h3 className="text-xl font-bold text-slate-800">{user.username}</h3>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{user.role}</p>
-            <div className="mt-6 pt-6 border-t border-slate-50 space-y-2 text-left">
-               <p className="text-[10px] text-slate-400 font-bold uppercase">Member Since</p>
-               <p className="text-sm font-medium text-slate-600">{new Date(user.createdAt).toLocaleDateString()}</p>
-            </div>
           </div>
 
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
@@ -101,55 +95,21 @@ const UserProfile: React.FC<Props> = ({ user, onUpdate, theme, setTheme }) => {
           </div>
         </div>
 
-        {/* Forms Area */}
         <div className="md:col-span-2 space-y-8">
-          {/* General Info */}
           <section className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <span className={`p-2 rounded-xl text-white ${btnColor}`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-              </span>
-              Personal Information
-            </h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">Personal Information</h3>
             <form onSubmit={handleUpdateInfo} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Full Name</label>
-                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all font-medium text-sm" placeholder="e.g. Ali Ahmed" />
+                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none text-sm" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all font-medium text-sm" placeholder="ali@example.pk" />
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 outline-none text-sm" />
                 </div>
               </div>
-              <button type="submit" className={`mt-2 px-8 py-3 rounded-2xl text-white font-bold text-sm shadow-lg transition-all active:scale-95 ${btnColor}`}>Save Changes</button>
-            </form>
-          </section>
-
-          {/* Security */}
-          <section className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <span className={`p-2 rounded-xl text-white ${btnColor}`}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-              </span>
-              Security & Password
-            </h3>
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Current Password</label>
-                <input required type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all font-medium text-sm" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">New Password</label>
-                  <input required type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all font-medium text-sm" />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Confirm New Password</label>
-                  <input required type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-emerald-500/10 outline-none transition-all font-medium text-sm" />
-                </div>
-              </div>
-              <button type="submit" className={`mt-2 px-8 py-3 rounded-2xl text-white font-bold text-sm shadow-lg transition-all active:scale-95 ${btnColor}`}>Update Security</button>
+              <button type="submit" className={`mt-2 px-8 py-3 rounded-2xl text-white font-bold text-sm ${btnColor}`}>Save Changes</button>
             </form>
           </section>
         </div>

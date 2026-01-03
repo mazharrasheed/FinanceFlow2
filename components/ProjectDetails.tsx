@@ -67,8 +67,6 @@ const ProjectDetails: React.FC<Props> = ({ projects, transactions, onAddTransact
   };
 
   const isAdmin = userRole === UserRole.ADMIN;
-
-  // Theme based color helpers
   const btnColor = theme === 'emerald' ? 'bg-emerald-600 hover:bg-emerald-700' :
                    theme === 'royal' ? 'bg-blue-600 hover:bg-blue-700' :
                    theme === 'gold' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-rose-600 hover:bg-rose-700';

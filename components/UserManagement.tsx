@@ -5,9 +5,8 @@ import { ICONS } from '../constants';
 
 interface Props {
   users: User[];
-  onAddUser: (u: User) => void;
+  onAddUser: (user: User) => void;
   onDeleteUser: (id: string) => void;
-  // Added theme prop to fix TypeScript error
   theme: AppTheme;
 }
 
@@ -113,7 +112,6 @@ const UserManagement: React.FC<Props> = ({ users, onAddUser, onDeleteUser, theme
                   <option value={UserRole.VIEWER}>Viewer (Read Only)</option>
                   <option value={UserRole.ADMIN}>Administrator (Full Access)</option>
                 </select>
-                <p className="mt-2 text-[10px] text-slate-400 leading-tight">Note: Default password is 'password123'. Users can change it after login.</p>
               </div>
               <button type="submit" className={`w-full ${btnColor} text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 mt-4`}>
                 Grant Access

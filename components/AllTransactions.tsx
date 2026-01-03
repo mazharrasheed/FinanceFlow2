@@ -6,11 +6,7 @@ import { ICONS } from '../constants';
 interface Props {
   projects: HotelProject[];
   transactions: Transaction[];
-  onUpdateTransaction: (t: Transaction) => void;
-  onDeleteTransaction: (id: string) => void;
-  userRole?: UserRole;
   onBackup: () => void;
-  // Added theme prop to fix TypeScript error
   theme: AppTheme;
 }
 
@@ -18,9 +14,8 @@ const formatCurrency = (amount: number) => {
   return `Rs. ${amount.toLocaleString('en-PK')}`;
 };
 
-const AllTransactions: React.FC<Props> = ({ projects, transactions, onUpdateTransaction, onDeleteTransaction, userRole, onBackup, theme }) => {
+const AllTransactions: React.FC<Props> = ({ projects, transactions, onBackup, theme }) => {
   const [filter, setFilter] = useState('');
-  const isAdmin = userRole === UserRole.ADMIN;
 
   const enrichedTransactions = transactions.map(t => ({
     ...t,
@@ -121,9 +116,6 @@ const AllTransactions: React.FC<Props> = ({ projects, transactions, onUpdateTran
               )}
             </tbody>
           </table>
-        </div>
-        <div className="p-4 bg-slate-50 text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center border-t border-slate-100 print:hidden">
-          Showing {filtered.length} of {transactions.length} entries
         </div>
       </div>
     </div>

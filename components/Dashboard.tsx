@@ -57,7 +57,6 @@ const Dashboard: React.FC<Props> = ({ projects, transactions, onBackup, theme })
   const themePrimaryColor = chartColors[0];
   const themeSecondaryColor = chartColors[1];
   
-  // Professional colorful palette for Pie Chart
   const piePalette = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
   const themePrimaryTextClass = theme === 'royal' ? 'text-blue-600' :
@@ -81,7 +80,6 @@ const Dashboard: React.FC<Props> = ({ projects, transactions, onBackup, theme })
           </button>
         </header>
 
-        {/* Semi-transparent Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white/60 backdrop-blur-md p-8 rounded-[2.5rem] shadow-sm border border-white/60 flex items-center gap-6 group hover:shadow-xl transition-all duration-300">
             <div className="bg-emerald-100/40 p-5 rounded-[2rem] group-hover:scale-110 transition-transform"><ICONS.Income /></div>

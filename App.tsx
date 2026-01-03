@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { ICONS, INITIAL_PROJECTS, INITIAL_TRANSACTIONS } from './constants';
-import { HotelProject, Transaction, User, UserRole, AppTheme } from './types';
 import Dashboard from './components/Dashboard';
 import ProjectList from './components/ProjectList';
 import ProjectDetails from './components/ProjectDetails';
@@ -10,6 +8,8 @@ import Login from './components/Login';
 import AllTransactions from './components/AllTransactions';
 import UserManagement from './components/UserManagement';
 import UserProfile from './components/UserProfile';
+import { ICONS, INITIAL_PROJECTS, INITIAL_TRANSACTIONS } from './constants';
+import { HotelProject, Transaction, User, UserRole, AppTheme } from './types';
 
 const Sidebar = ({ user, onLogout, theme }: { user: User | null; onLogout: () => void; theme: AppTheme }) => {
   const location = useLocation();
@@ -82,15 +82,8 @@ const Sidebar = ({ user, onLogout, theme }: { user: User | null; onLogout: () =>
   );
 };
 
-const PrivateRoute: React.FC<{ children: React.ReactNode; user: User | null }> = ({ children, user }) => {
-  return user ? <>{children}</> : <Navigate to="/login" />;
-};
-
-const AdminRoute: React.FC<{ children: React.ReactNode; user: User | null }> = ({ children, user }) => {
-  return user?.role === UserRole.ADMIN ? <>{children}</> : <Navigate to="/" />;
-};
-
-const App: React.FC = () => {
+const AppRoutes = () => {
+  const navigate = useNavigate();
   const [theme, setTheme] = useState<AppTheme>(() => (localStorage.getItem('hf_theme') as AppTheme) || 'emerald');
 
   const [user, setUser] = useState<User | null>(() => {
@@ -139,40 +132,9 @@ const App: React.FC = () => {
     }
   }, [user]);
 
-  const handleLogin = (u: User) => setUser(u);
-  const handleLogout = () => setUser(null);
-
-  const addProject = (project: HotelProject) => setProjects(prev => [project, ...prev]);
-  const updateProject = (project: HotelProject) => {
-    setProjects(prev => prev.map(p => p.id === project.id ? project : p));
-  };
-  const deleteProject = (id: string) => {
-    if (confirm('Delete this project and all history?')) {
-      setProjects(prev => prev.filter(p => p.id !== id));
-      setTransactions(prev => prev.filter(t => t.projectId !== id));
-    }
-  };
-
-  const addTransaction = (transaction: Transaction) => setTransactions(prev => [transaction, ...prev]);
-  const updateTransaction = (transaction: Transaction) => {
-    setTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
-  };
-  const deleteTransaction = (id: string) => {
-    if (confirm('Delete this transaction?')) {
-      setTransactions(prev => prev.filter(t => t.id !== id));
-    }
-  };
-
-  const addUser = (newUser: User) => setUsers(prev => [...prev, newUser]);
-  const deleteUser = (id: string) => {
-    if (confirm('Delete this user?')) {
-      setUsers(prev => prev.filter(u => u.id !== id));
-    }
-  };
-
-  const updateUserProfile = (updatedUser: User) => {
-    setUser(updatedUser);
-    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+  const handleLogout = () => {
+    setUser(null);
+    navigate('/login');
   };
 
   const backupToCSV = () => {
@@ -190,70 +152,33 @@ const App: React.FC = () => {
     link.click();
   };
 
-  return (
-    <HashRouter>
-      <div className={`min-h-screen bg-[#f8fafc] text-slate-900 flex theme-${theme}`}>
-        <Sidebar user={user} onLogout={handleLogout} theme={theme} />
-        
-        <main className={`flex-1 transition-all duration-300 ${user ? 'ml-64 print:ml-0' : 'ml-0'} p-8 min-h-screen print:p-0 relative`}>
-          <Routes>
-            <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} users={users} theme={theme} />} />
-            
-            <Route path="/" element={<PrivateRoute user={user}><Dashboard projects={projects} transactions={transactions} onBackup={backupToCSV} theme={theme} /></PrivateRoute>} />
-            
-            <Route 
-              path="/projects" 
-              element={<PrivateRoute user={user}><ProjectList 
-                projects={projects} 
-                onAddProject={addProject} 
-                onUpdateProject={updateProject}
-                onDeleteProject={deleteProject}
-                transactions={transactions} 
-                userRole={user?.role}
-                theme={theme}
-              /></PrivateRoute>} 
-            />
-            
-            <Route 
-              path="/project/:id" 
-              element={<PrivateRoute user={user}><ProjectDetails 
-                projects={projects} 
-                transactions={transactions} 
-                onAddTransaction={addTransaction} 
-                onUpdateTransaction={updateTransaction}
-                onDeleteTransaction={deleteTransaction}
-                userRole={user?.role}
-                theme={theme}
-              /></PrivateRoute>} 
-            />
-            
-            <Route 
-              path="/transactions" 
-              element={<PrivateRoute user={user}><AllTransactions 
-                projects={projects} 
-                transactions={transactions} 
-                onUpdateTransaction={updateTransaction}
-                onDeleteTransaction={deleteTransaction}
-                userRole={user?.role}
-                onBackup={backupToCSV}
-                theme={theme}
-              /></PrivateRoute>} 
-            />
-            
-            <Route 
-              path="/users" 
-              element={<AdminRoute user={user}><UserManagement users={users} onAddUser={addUser} onDeleteUser={deleteUser} theme={theme} /></AdminRoute>} 
-            />
+  if (!user && window.location.hash !== '#/login') {
+    return <Navigate to="/login" replace />;
+  }
 
-            <Route 
-              path="/profile" 
-              element={<PrivateRoute user={user}><UserProfile user={user!} onUpdate={updateUserProfile} theme={theme} setTheme={setTheme} /></PrivateRoute>} 
-            />
-          </Routes>
-        </main>
-      </div>
-    </HashRouter>
+  return (
+    <div className={`min-h-screen bg-[#f8fafc] text-slate-900 flex theme-${theme}`}>
+      {user && <Sidebar user={user} onLogout={handleLogout} theme={theme} />}
+      
+      <main className={`flex-1 transition-all duration-300 ${user ? 'ml-64' : ''} print:ml-0 p-8 min-h-screen`}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={user ? <Dashboard projects={projects} transactions={transactions} onBackup={backupToCSV} theme={theme} /> : <Navigate to="/login" />} />
+          <Route path="/projects" element={user ? <ProjectList projects={projects} transactions={transactions} onAddProject={p => setProjects([p, ...projects])} onUpdateProject={p => setProjects(projects.map(old => old.id === p.id ? p : old))} onDeleteProject={id => { if(confirm('Delete?')){ setProjects(projects.filter(p => p.id !== id)); setTransactions(transactions.filter(t => t.projectId !== id)); } }} userRole={user.role} theme={theme} /> : <Navigate to="/login" />} />
+          <Route path="/project/:id" element={user ? <ProjectDetails projects={projects} transactions={transactions} onAddTransaction={t => setTransactions([t, ...transactions])} onUpdateTransaction={t => setTransactions(transactions.map(old => old.id === t.id ? t : old))} onDeleteTransaction={id => { if(confirm('Delete?')) setTransactions(transactions.filter(t => t.id !== id)); }} userRole={user.role} theme={theme} /> : <Navigate to="/login" />} />
+          <Route path="/transactions" element={user ? <AllTransactions projects={projects} transactions={transactions} onBackup={backupToCSV} theme={theme} /> : <Navigate to="/login" />} />
+          <Route path="/users" element={user?.role === UserRole.ADMIN ? <UserManagement users={users} onAddUser={u => setUsers([...users, u])} onDeleteUser={id => setUsers(users.filter(u => u.id !== id))} theme={theme} /> : <Navigate to="/" />} />
+          <Route path="/profile" element={user ? <UserProfile user={user} onUpdate={updated => { setUser(updated); setUsers(users.map(u => u.id === updated.id ? updated : u)); }} theme={theme} setTheme={setTheme} /> : <Navigate to="/login" />} />
+        </Routes>
+      </main>
+    </div>
   );
 };
+
+const App: React.FC = () => (
+  <HashRouter>
+    <AppRoutes />
+  </HashRouter>
+);
 
 export default App;
