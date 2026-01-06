@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import Dashboard from './components/Dashboard';
-import ProjectList from './components/ProjectList';
-import ProjectDetails from './components/ProjectDetails';
-import Login from './components/Login';
-import AllTransactions from './components/AllTransactions';
-import UserManagement from './components/UserManagement';
-import UserProfile from './components/UserProfile';
+import Dashboard from './src/components/Dashboard';
+import ProjectList from './src/components/ProjectList';
+import ProjectDetails from './src/components/ProjectDetails';
+import Login from './src/components/Login';
+import AllTransactions from './src/components/AllTransactions';
+import UserManagement from './src/components/UserManagement';
+import UserProfile from './src/components/UserProfile';
 import { ICONS, INITIAL_PROJECTS, INITIAL_TRANSACTIONS } from './constants';
 import { HotelProject, Transaction, User, UserRole, AppTheme, UserPermissions } from './types';
 

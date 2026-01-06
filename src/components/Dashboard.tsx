@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { HotelProject, Transaction, TransactionType, AppTheme, UserPermissions } from '../types';
-import { ICONS } from '../constants';
+import { HotelProject, Transaction, TransactionType, AppTheme, UserPermissions } from '../../types';
+import { ICONS } from '../../constants';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 
 interface Props {

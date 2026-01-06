@@ -1,5 +1,4 @@
-
- {
+{
   "homepage": "https://mazharrasheed.github.io/FinanceFlow2",
   "scripts": {
     "dev": "vite",
@@ -18,6 +17,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
     "gh-pages": "^6.3.0",
     "typescript": "4.9.5",

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Transaction, HotelProject, TransactionType, AppTheme, IncomeCategory, ExpenseCategory, UserPermissions } from '../types';
-import { ICONS } from '../constants';
+import { Transaction, HotelProject, TransactionType, AppTheme, IncomeCategory, ExpenseCategory, UserPermissions } from '../../types';
+import { ICONS } from '../../constants';
 
 interface Props {
   projects: HotelProject[];
