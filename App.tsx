@@ -1,43 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import Dashboard from './src/components/Dashboard';
-import ProjectList from './src/components/ProjectList';
-import ProjectDetails from './src/components/ProjectDetails';
-import Login from './src/components/Login';
-import AllTransactions from './src/components/AllTransactions';
-import UserManagement from './src/components/UserManagement';
-import UserProfile from './src/components/UserProfile';
-import { ICONS, INITIAL_PROJECTS, INITIAL_TRANSACTIONS } from './constants';
-import { HotelProject, Transaction, User, UserRole, AppTheme, UserPermissions } from './types';
+import Dashboard from './components/Dashboard';
+import ProjectList from './components/ProjectList';
+import ProjectDetails from './components/ProjectDetails';
+import Login from './components/Login';
+import AllTransactions from './components/AllTransactions';
+import UserManagement from './components/UserManagement';
+import UserProfile from './components/UserProfile';
+import { ICONS } from './constants';
+import { UserProvider, useAuth } from './contexts/UserContext';
+import { DataProvider, useData } from './contexts/DataContext';
 
-const FULL_PERMISSIONS: UserPermissions = {
-  viewProjects: true, addProjects: true, editProjects: true, deleteProjects: true,
-  viewTransactions: true, addTransactions: true, editTransactions: true, deleteTransactions: true,
-  manageUsers: true
-};
-
-const getSafePermissions = (u: User | null): UserPermissions => {
-  if (!u || !u.permissions) return {
-    viewProjects: true, addProjects: false, editProjects: false, deleteProjects: false,
-    viewTransactions: true, addTransactions: false, editTransactions: false, deleteTransactions: false,
-    manageUsers: false
-  };
-  const p = u.permissions;
-  return {
-    viewProjects: !!p.viewProjects,
-    addProjects: !!p.addProjects,
-    editProjects: !!p.editProjects,
-    deleteProjects: !!p.deleteProjects,
-    viewTransactions: !!p.viewTransactions,
-    addTransactions: !!p.addTransactions,
-    editTransactions: !!p.editTransactions,
-    deleteTransactions: !!p.deleteTransactions,
-    manageUsers: !!p.manageUsers
-  };
-};
-
-const Sidebar = ({ user, onLogout, theme, perms }: { user: User; onLogout: () => void; theme: AppTheme; perms: UserPermissions }) => {
+const Sidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const { user, logout, theme, perms } = useAuth();
   const location = useLocation();
+  if (!user) return null;
+
   const themeColors = {
     emerald: 'bg-emerald-600 shadow-emerald-900/50',
     royal: 'bg-blue-600 shadow-blue-900/50',
@@ -58,152 +37,157 @@ const Sidebar = ({ user, onLogout, theme, perms }: { user: User; onLogout: () =>
   ];
 
   return (
-    <aside className="w-64 bg-slate-900 text-white h-screen flex flex-col fixed left-0 top-0 z-40 print:hidden">
-      <div className="p-6">
-        <h1 className="text-xl font-bold flex items-center gap-2">
-          <span className={`${themeColors[theme]} p-1.5 rounded-lg shadow-lg`}>🏨</span>
-          HotelFlow
-        </h1>
-      </div>
-      <nav className="flex-1 mt-4 px-4 space-y-2 overflow-y-auto no-scrollbar">
-        {navItems.filter(item => item.show).map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
-              location.pathname === item.path ? themeColors[theme] : 'hover:bg-slate-800'
-            }`}
-          >
-            <item.icon />
-            <span className="font-medium text-sm">{item.name}</span>
-          </Link>
-        ))}
-      </nav>
-      <div className="p-6 border-t border-slate-800 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-full ${themeColors[theme]} flex items-center justify-center text-xs font-bold uppercase`}>
-            {user.username?.charAt(0) || 'U'}
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold truncate">{user.fullName || user.username}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest">{user.role}</p>
-          </div>
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+          onClick={onClose}
+        />
+      )}
+      
+      <aside className={`w-64 bg-slate-900 text-white h-screen flex flex-col fixed left-0 top-0 z-50 print:hidden transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 flex items-center justify-between">
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <span className={`${themeColors[theme]} p-1.5 rounded-lg shadow-lg`}>🏨</span>
+            HotelFlow
+          </h1>
+          <button onClick={onClose} className="lg:hidden p-2 text-slate-400 hover:text-white">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
-        <button 
-          onClick={onLogout}
-          className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-rose-500/10 text-rose-400 text-sm font-medium transition-colors"
-        >
-          <ICONS.Logout />
-          Logout
-        </button>
-      </div>
-    </aside>
+        <nav className="flex-1 mt-4 px-4 space-y-2 overflow-y-auto no-scrollbar">
+          {navItems.filter(item => item.show).map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              onClick={() => { if (window.innerWidth < 1024) onClose(); }}
+              className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 ${
+                location.pathname === item.path ? themeColors[theme] : 'hover:bg-slate-800'
+              }`}
+            >
+              <item.icon />
+              <span className="font-medium text-sm">{item.name}</span>
+            </Link>
+          ))}
+        </nav>
+        <div className="p-6 border-t border-slate-800 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-full ${themeColors[theme]} flex items-center justify-center text-xs font-bold uppercase`}>
+              {user.username?.charAt(0) || 'U'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate">{user.fullName || user.username}</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest">{user.role}</p>
+            </div>
+          </div>
+          <button 
+            onClick={logout}
+            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-rose-500/10 text-rose-400 text-sm font-medium transition-colors"
+          >
+            <ICONS.Logout />
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 
 const AppRoutes = () => {
-  const navigate = useNavigate();
-  const [theme, setTheme] = useState<AppTheme>(() => (localStorage.getItem('hf_theme') as AppTheme) || 'emerald');
+  const { user, perms, login, users, addUser, deleteUser, theme, setTheme, updateUser } = useAuth();
+  const { 
+    projects, transactions, addProject, updateProject, deleteProject, 
+    addTransaction, updateTransaction, deleteTransaction, backupToCSV 
+  } = useData();
+  
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const location = useLocation();
 
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('hf_auth');
-    if (!saved || saved === 'undefined') return null;
-    try {
-      const parsed = JSON.parse(saved);
-      return (parsed && parsed.username && parsed.permissions) ? parsed : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem('hf_users');
-    if (!saved || saved === 'undefined') return [{ id: '1', username: 'admin', password: 'password123', role: UserRole.ADMIN, permissions: FULL_PERMISSIONS, createdAt: new Date().toISOString(), fullName: 'Master Admin' }];
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return [];
-    }
-  });
-
-  const [projects, setProjects] = useState<HotelProject[]>(() => {
-    const saved = localStorage.getItem('hf_projects');
-    if (!saved || saved === 'undefined') return INITIAL_PROJECTS;
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return INITIAL_PROJECTS;
-    }
-  });
-
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem('hf_transactions');
-    if (!saved || saved === 'undefined') return INITIAL_TRANSACTIONS;
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return INITIAL_TRANSACTIONS;
-    }
-  });
-
-  const perms = useMemo(() => getSafePermissions(user), [user]);
-
+  // Close sidebar on navigation if on mobile
   useEffect(() => {
-    localStorage.setItem('hf_theme', theme);
-  }, [theme]);
+    setIsSidebarOpen(false);
+  }, [location.pathname]);
 
-  useEffect(() => {
-    localStorage.setItem('hf_projects', JSON.stringify(projects));
-    localStorage.setItem('hf_transactions', JSON.stringify(transactions));
-    localStorage.setItem('hf_users', JSON.stringify(users));
-    if (user) {
-      localStorage.setItem('hf_auth', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('hf_auth');
-    }
-  }, [projects, transactions, users, user]);
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('hf_auth');
-    navigate('/login');
-  };
-
-  const backupToCSV = () => {
-    const headers = ['ID', 'Project', 'Date', 'Type', 'Category', 'Amount', 'Description'];
-    const rows = transactions.map(t => {
-      const p = projects.find(proj => proj.id === t.projectId);
-      return [t.id, p?.name || 'Unknown', t.date, t.type, t.category, t.amount, `"${(t.description || '').replace(/"/g, '""')}"`];
-    });
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `hotelflow_backup_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+  const themeColors = {
+    emerald: 'bg-emerald-600',
+    royal: 'bg-blue-600',
+    gold: 'bg-amber-600',
+    midnight: 'bg-rose-600',
   };
 
   return (
-    <div className={`min-h-screen bg-slate-50 text-slate-900 flex`}>
-      {user && <Sidebar user={user} onLogout={handleLogout} theme={theme} perms={perms} />}
+    <div className={`min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row`}>
+      {user && (
+        <header className="lg:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-2">
+             <span className={`${themeColors[theme]} p-1.5 rounded-lg text-white shadow-sm text-sm`}>🏨</span>
+             <span className="font-black text-slate-800 tracking-tight">HotelFlow</span>
+          </div>
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 text-slate-600 bg-slate-50 rounded-lg border border-slate-100"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" /></svg>
+          </button>
+        </header>
+      )}
+
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       
-      <main className={`flex-1 transition-all duration-300 ${user ? 'ml-64' : ''} print:ml-0 p-8 min-h-screen`}>
+      <main className={`flex-1 transition-all duration-300 ${user ? 'lg:ml-64' : ''} print:ml-0 p-4 md:p-8 min-h-screen`}>
         <Routes>
-          <Route path="/login" element={!user ? <Login onLogin={setUser} /> : <Navigate to="/" replace />} />
-          
-          <Route path="/" element={user ? <Dashboard projects={projects} transactions={transactions} onBackup={backupToCSV} userPermissions={perms} theme={theme} /> : <Navigate to="/login" replace />} />
-          
-          <Route path="/projects" element={user && perms.viewProjects ? <ProjectList projects={projects} transactions={transactions} onAddProject={p => setProjects([p, ...projects])} onUpdateProject={p => setProjects(projects.map(old => old.id === p.id ? p : old))} onDeleteProject={id => { if(confirm('Delete project and all its records?')){ setProjects(projects.filter(p => p.id !== id)); setTransactions(transactions.filter(t => t.projectId !== id)); } }} userPermissions={perms} theme={theme} /> : <Navigate to="/login" replace />} />
-          
-          <Route path="/project/:id" element={user && perms.viewProjects ? <ProjectDetails projects={projects} transactions={transactions} onAddTransaction={t => setTransactions([t, ...transactions])} onUpdateTransaction={t => setTransactions(transactions.map(old => old.id === t.id ? t : old))} onDeleteTransaction={id => { if(confirm('Delete record?')) setTransactions(transactions.filter(t => t.id !== id)); }} userPermissions={perms} theme={theme} /> : <Navigate to="/login" replace />} />
-          
-          <Route path="/transactions" element={user && perms.viewTransactions ? <AllTransactions projects={projects} transactions={transactions} onBackup={backupToCSV} onUpdateTransaction={t => setTransactions(transactions.map(old => old.id === t.id ? t : old))} onDeleteTransaction={id => { if(confirm('Delete record permanently?')) setTransactions(transactions.filter(t => t.id !== id)); }} userPermissions={perms} theme={theme} /> : <Navigate to="/login" replace />} />
-          
-          <Route path="/users" element={user && perms.manageUsers ? <UserManagement users={users} onAddUser={u => setUsers([...users, u])} onDeleteUser={id => setUsers(users.filter(u => u.id !== id))} theme={theme} /> : <Navigate to="/login" replace />} />
-          
-          <Route path="/profile" element={user ? <UserProfile user={user} onUpdate={updated => { setUser(updated); setUsers(users.map(u => u.id === updated.id ? updated : u)); }} theme={theme} setTheme={setTheme} /> : <Navigate to="/login" replace />} />
-          
+          <Route path="/login" element={!user ? <Login onLogin={login} /> : <Navigate to="/" replace />} />
+          <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/projects" element={user && perms.viewProjects ? (
+            <ProjectList 
+              projects={projects} 
+              transactions={transactions} 
+              onAddProject={addProject} 
+              onUpdateProject={updateProject} 
+              onDeleteProject={deleteProject} 
+              userPermissions={perms} 
+              theme={theme} 
+            />
+          ) : <Navigate to="/login" replace />} />
+          <Route path="/project/:id" element={user && perms.viewProjects ? (
+            <ProjectDetails 
+              projects={projects} 
+              transactions={transactions} 
+              onAddTransaction={addTransaction} 
+              onUpdateTransaction={updateTransaction} 
+              onDeleteTransaction={deleteTransaction} 
+              userPermissions={perms} 
+              theme={theme} 
+            />
+          ) : <Navigate to="/login" replace />} />
+          <Route path="/transactions" element={user && perms.viewTransactions ? (
+            <AllTransactions 
+              projects={projects} 
+              transactions={transactions} 
+              onBackup={backupToCSV} 
+              onUpdateTransaction={updateTransaction} 
+              onDeleteTransaction={deleteTransaction} 
+              userPermissions={perms} 
+              theme={theme} 
+            />
+          ) : <Navigate to="/login" replace />} />
+          <Route path="/users" element={user && perms.manageUsers ? (
+            <UserManagement 
+              users={users} 
+              onAddUser={addUser} 
+              onDeleteUser={deleteUser} 
+              theme={theme} 
+            />
+          ) : <Navigate to="/login" replace />} />
+          <Route path="/profile" element={user ? (
+            <UserProfile 
+              user={user} 
+              onUpdate={updateUser} 
+              theme={theme} 
+              setTheme={setTheme} 
+            />
+          ) : <Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -212,9 +196,13 @@ const AppRoutes = () => {
 };
 
 const App: React.FC = () => (
-  <HashRouter>
-    <AppRoutes />
-  </HashRouter>
+  <UserProvider>
+    <DataProvider>
+      <HashRouter>
+        <AppRoutes />
+      </HashRouter>
+    </DataProvider>
+  </UserProvider>
 );
 
 export default App;

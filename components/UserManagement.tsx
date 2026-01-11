@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { User, UserRole, AppTheme, UserPermissions } from '../../types';
-import { ICONS } from '../../constants';
+import { User, UserRole, AppTheme, UserPermissions } from '../types';
+import { ICONS } from '../constants';
 
 interface Props {
   users: User[];

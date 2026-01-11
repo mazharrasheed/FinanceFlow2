@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, AppTheme } from '../../types';
+import { User, AppTheme } from '../types';
 
 interface Props {
   user: User;

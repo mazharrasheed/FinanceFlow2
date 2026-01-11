@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HotelProject, Transaction, TransactionType, AppTheme, UserPermissions } from '../../types';
-import { ICONS } from '../../constants';
+import { HotelProject, Transaction, TransactionType, AppTheme, UserPermissions } from '../types';
+import { ICONS } from '../constants';
 
 interface Props {
   projects: HotelProject[];

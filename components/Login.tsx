@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, UserRole, UserPermissions } from '../../types';
+import { User, UserRole, UserPermissions } from '../types';
 
 const FULL_PERMISSIONS: UserPermissions = {
   viewProjects: true, addProjects: true, editProjects: true, deleteProjects: true,
@@ -14,8 +15,9 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // Pre-fill fields with default credentials
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
